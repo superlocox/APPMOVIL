@@ -51,7 +51,8 @@ class Single_cart_product extends StatelessWidget {
   final cart_product_price;
   final cart_product_count;
 
-  final url = "http://10.0.0.7:4000";
+  //final url = "http://10.0.0.7:4000";
+  final url = "https://sade-app.herokuapp.com/";
 
 
   Single_cart_product({

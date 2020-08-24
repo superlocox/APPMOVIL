@@ -39,24 +39,60 @@ class _ProductDetailsState extends State<ProductDetails> {
             child: GridTile(
               child: Container(
                 color: Colors.white,
-                child: Image.network(('http://10.0.0.7:4000' + widget.product_detail_picture)),
+
+                child: Image.network(('https://sade-app.herokuapp.com/' + widget.product_detail_picture)),
               ),
               footer: new Container(
                 color: Colors.white70,
-                child: ListTile(
-                  leading: new Text(widget.product_detail_name, style: TextStyle(fontWeight: FontWeight.bold),),
-                  title: new Row(
-                    children: <Widget>[
-                      Expanded(
-                        child: new Text("Precio: \$${widget.product_detail_cant}"),
 
+                child: Column(children: <Widget>[
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+
+                    Container(
+                      width: 400,
+                      child: Text(widget.product_detail_name, style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                        fontSize: 16,
                       ),
-                      Expanded(
-                        child: new Text("Cantidad: ${widget.product_detail_cant}"),
-                      )
-                    ],
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 2,
+                      ),
+                    ),
+
+                  ],
+
                   ),
-                ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+
+                    children: <Widget>[
+
+                    Expanded(
+                      child: new Text("Precio: \$${widget.product_detail_price}",
+                      style: TextStyle(
+                        fontSize: 20,
+                      ),
+                      ),
+
+                    ),
+                    Expanded(
+                      child: new Text("Cantidad: ${widget.product_detail_cant}",
+                        style: TextStyle(
+                          fontSize: 20,
+                        ),
+                      ),
+                    )
+
+                  ],)
+                ],)
+
+
+
+               ,
               ),
 
             ),

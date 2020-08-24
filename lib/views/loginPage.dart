@@ -4,10 +4,12 @@ import 'package:loquesea/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import 'package:loquesea/views/pedidos.dart';
 import 'package:loquesea/views/regisPage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http ;
+import 'package:form_field_validator/form_field_validator.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -15,6 +17,29 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+
+  GlobalKey<FormState> formkey = GlobalKey<FormState>();
+
+  void validate(){
+    if(formkey.currentState.validate()){
+      print("Valido");
+      signIn(emailController.text, passwordController.text);
+    }else{
+      print("No valido");
+    }
+  }
+
+  String validatepass(value){
+    if(value.isEmpty){
+      return "Requerido";
+
+    }else if(value.length <8){
+      return "No puede ser menor que 8 carácteres";
+    }else {
+      return null;
+    }
+
+  }
 
   bool _isLoading = false;
 
@@ -61,7 +86,10 @@ class _LoginPageState extends State<LoginPage> {
     };
     var jsonResponse = null;
     var response = await http.post(
-        "http://10.0.0.7:4000/sigin_api", body: data);
+        //"https://sade-app.herokuapp.com/sigin_api", body: data)
+        "http://10.0.0.7:4000/sigin_api", body: data)
+
+    ;
     jsonResponse = json.decode(response.body);
     if (response.statusCode == 200) {
       jsonResponse = json.decode(response.body);
@@ -78,11 +106,33 @@ class _LoginPageState extends State<LoginPage> {
       }
     }
 
+    if (response.statusCode == 201){
+
+      jsonResponse = json.decode(response.body);
+
+      if (jsonResponse != null) {
+        setState(() {
+          _isLoading = false;
+        });
+        sharedPreferences.setString("token", jsonResponse['token']);
+        Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (BuildContext context) => pedidos()), (
+            Route<dynamic> route) => false);
+        Fluttertoast.showToast(msg: "Se conectó correctamente el mensajero");
+      }
+
+
+    }
+
     else {
-      Fluttertoast.showToast(msg: "Correo ó contraseña equivocada");
+
       setState(() {
         _isLoading = false;
       });
+
+
+
+      Fluttertoast.showToast(msg: "Correo ó contraseña equivocada");
       print(response.body);
 
     }
@@ -96,12 +146,16 @@ class _LoginPageState extends State<LoginPage> {
       padding: EdgeInsets.symmetric(horizontal: 15.0),
       child: RaisedButton(
         // ignore: unrelated_type_equality_checks
-        onPressed: emailController.text == "" || passwordController == "" ? null : (){
+        onPressed: validate
+        //Ctrl+shif+/ para uncomment/comment
+
+       /* emailController.text == "" || passwordController == "" ? null : (){
           setState(() {
             _isLoading = true;
           });
           signIn(emailController.text, passwordController.text);
-        },
+        }*/
+        ,
         elevation: 0.0,
         color: Colors.purple,
         child: Text("SignIn",style: TextStyle(color: Colors.white70)),
@@ -113,32 +167,44 @@ class _LoginPageState extends State<LoginPage> {
   Container textSection(){
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 15.0, vertical: 20.0),
-      child: Column(
-        children: <Widget>[
+      child: Form(
+        autovalidate: true,
+        key: formkey,
+        child: Column(
+          children: <Widget>[
 
-          TextField(
-            controller:  emailController,
-            cursorColor: Colors.white,
-            style: TextStyle(color: Colors.white70),
-            decoration: InputDecoration(
-                icon: Icon(Icons.email, color: Colors.white70),
-                hintText: "Correo",
-                border: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white70)),
-                hintStyle: TextStyle(color: Colors.white)
+            TextFormField(
+              controller:  emailController,
+              cursorColor: Colors.white,
+              style: TextStyle(color: Colors.white70),
+              decoration: InputDecoration(
+                  icon: Icon(Icons.email, color: Colors.white70),
+                  hintText: "Correo",
+                  border: OutlineInputBorder(borderSide: BorderSide(color: Colors.black)),
+                  hintStyle: TextStyle(color: Colors.white),
+                  labelText: "Correo"
+              ),
+              validator: MultiValidator(
+                [
+                  RequiredValidator(errorText: "Requerido"),
+                  EmailValidator(errorText: "Email no válido")
+                ]
+
+              ),
             ),
-          ),
-          SizedBox(height: 30.0,),
+            SizedBox(height: 30.0,),
 
-          TextField(
-            controller:  passwordController,
-            cursorColor: Colors.white,
-            style: TextStyle(color: Colors.white70),
-            obscureText: passwordVisible,
-            decoration: InputDecoration(
+            TextFormField(
+              controller:  passwordController,
+              cursorColor: Colors.white,
+              style: TextStyle(color: Colors.white70),
+              obscureText: passwordVisible,
+              decoration: InputDecoration(
                 icon: Icon(Icons.lock, color: Colors.white70),
                 hintText: "Contraseña",
-                border: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white70)),
+                border: OutlineInputBorder(borderSide: BorderSide(color: Colors.black)),
                 hintStyle: TextStyle(color: Colors.white),
+                labelText: "Contraseña",
                 suffixIcon: IconButton(
                   icon: Icon(
                       passwordVisible ? Icons.visibility : Icons.visibility_off, color: Colors.white70),
@@ -149,12 +215,14 @@ class _LoginPageState extends State<LoginPage> {
                   },
                 ),
 
+              ),
+              validator: validatepass,
+
+
             ),
-
-
-          ),
-          SizedBox(height: 30.0,),
-        ],
+            SizedBox(height: 30.0,),
+          ],
+        ),
       ),
     );
   }

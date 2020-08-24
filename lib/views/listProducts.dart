@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 //import 'package:appnode/view/detailProduct.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:loquesea/views/product_detail.dart';
@@ -17,7 +18,7 @@ class _ListProductsState extends State<ListProducts> {
   List productData;
 
   getProducts() async{
-    http.Response response = await http.get("http://10.0.0.7:4000/api/productos");
+    http.Response response = await http.get("https://sade-app.herokuapp.com/api/productos");
     data = json.decode(response.body);
     setState(() {
       productData = data['productos'];
@@ -82,20 +83,31 @@ class Single_prod extends StatelessWidget {
             child: GridTile(
                 footer: Container(
                 color: Colors.white70,
-                child: ListTile(
-                  leading: Text(
-                    product_name,
-                    style: TextStyle(fontWeight: FontWeight.bold),
 
-                  ),
+                  child: Column(children: <Widget>[
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
 
-                  title: Text("\$$product_price",
-                  style: TextStyle(color: Colors.green, fontWeight: FontWeight.w800),
-                    textAlign: TextAlign.end,
-                  ),
-                ) ,
+
+                      Container(
+                          width: 120.0,
+
+                          child: Text(product_name,style: TextStyle(fontSize: 10.0, fontWeight: FontWeight.bold
+                          ),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 2,
+                          )
+                      ),
+                      Text("\$$product_price",style: TextStyle(color: Colors.green, fontSize: 22.0 ,fontWeight: FontWeight.w800)),
+                    ],)
+                  ],)
+
+
+            ,
                 ),
-              child: Image.network(('http://10.0.0.7:4000' + product_picture), fit: BoxFit.cover)),
+              child: Image.network(('https://sade-app.herokuapp.com/' + product_picture), fit: BoxFit.cover)),
       ),
           ))
     );
