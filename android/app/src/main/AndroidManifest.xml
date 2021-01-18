@@ -1,6 +1,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.ejemplo.loquesea">
     <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.USE_FINGERPRINT"/>
+    <uses-permission android:name="android.permission.USE_BIOMETRIC"/>
 
 
     <!-- io.flutter.app.FlutterApplication is an android.app.Application that
@@ -10,7 +13,7 @@
          FlutterApplication and put your custom class here. -->
     <application
         android:name="io.flutter.app.FlutterApplication"
-        android:label="loquesea"
+        android:label="Sade"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"
@@ -46,5 +49,7 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        <meta-data android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyB7la-FupTRMVOmEyDV_5ABtzWcKbgotnY"/>
     </application>
 </manifest>

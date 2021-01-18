@@ -17,8 +17,11 @@ class _ListProductsState extends State<ListProducts> {
   Map data;
   List productData;
 
+  final url1= "http://10.128.128.35:4000/api/productos";
+  final url2= "https://sade-app.herokuapp.com/api/productos";
+
   getProducts() async{
-    http.Response response = await http.get("https://sade-app.herokuapp.com/api/productos");
+    http.Response response = await http.get(url1);
     data = json.decode(response.body);
     setState(() {
       productData = data['productos'];
@@ -38,12 +41,18 @@ class _ListProductsState extends State<ListProducts> {
         itemCount: productData == null ? 0 : productData.length,
         gridDelegate: new SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2),
         itemBuilder: (BuildContext context, int index){
-          return Single_prod(
-            product_name: productData[index]['nombre_producto'],
-            product_picture: productData[index]['imgPath'],
-            product_price: productData[index]['precio'],
-            product_count: productData[index]['cantidad'],
-            product_descripcion: productData[index]['descripcion_producto'],
+          return Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Single_prod(
+              product_id: productData[index]['_id'],
+              product_name: productData[index]['nombre_producto'],
+              product_picture: productData[index]['imgPath'],
+              product_price: productData[index]['precio'],
+              product_count: productData[index]['cantidad'],
+              product_descripcion: productData[index]['descripcion_producto'],
+
+
+            ),
           );
 
       },
@@ -52,6 +61,7 @@ class _ListProductsState extends State<ListProducts> {
 }
 
 class Single_prod extends StatelessWidget {
+  final product_id;
   final product_name;
   final product_picture;
   final product_price;
@@ -59,6 +69,7 @@ class Single_prod extends StatelessWidget {
   final product_descripcion;
 
   Single_prod({
+    this.product_id,
     this.product_name,
     this.product_picture,
     this.product_price,
@@ -69,9 +80,14 @@ class Single_prod extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
+
       child: Hero(
+
           tag: product_name,
           child: Material(
+            elevation: 14,
+            borderRadius: BorderRadius.circular(30.0),
+            //shadowColor: Color(0x802196F3),
             child: InkWell(
               onTap: ()=> Navigator.of(context).push(new MaterialPageRoute(builder: (context) => new ProductDetails(
                 product_detail_name: product_name,
@@ -79,6 +95,7 @@ class Single_prod extends StatelessWidget {
                 product_detail_cant: product_count,
                 product_detail_picture: product_picture,
                 product_detail_detalle: product_descripcion,
+                product_deatail_id: product_id,
               ))),
             child: GridTile(
                 footer: Container(
@@ -107,7 +124,8 @@ class Single_prod extends StatelessWidget {
 
             ,
                 ),
-              child: Image.network(('https://sade-app.herokuapp.com/' + product_picture), fit: BoxFit.cover)),
+              //child: Image.network(('https://sade-app.herokuapp.com/' + product_picture), fit: BoxFit.cover)),
+                child: Image.network(('http://10.128.128.35:4000/' + product_picture), fit: BoxFit.cover)),
       ),
           ))
     );

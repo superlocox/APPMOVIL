@@ -46,16 +46,18 @@ class _Cart_productsState extends State<Cart_products> {
 
 class Single_cart_product extends StatelessWidget {
 
+  final String id;
   final cart_product_name;
   final cart_product_picture;
   final cart_product_price;
   final cart_product_count;
 
-  //final url = "http://10.0.0.7:4000";
-  final url = "https://sade-app.herokuapp.com/";
+  final url = "http://10.128.128.35:4000";
+  //final url = "https://sade-app.herokuapp.com/";
 
 
   Single_cart_product({
+    this.id,
     this.cart_product_name,
     this.cart_product_picture,
     this.cart_product_count,

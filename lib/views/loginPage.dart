@@ -1,15 +1,21 @@
 import 'dart:convert';
 
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:loquesea/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import 'package:loquesea/views/geo_state.dart';
 import 'package:loquesea/views/pedidos.dart';
 import 'package:loquesea/views/regisPage.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http ;
 import 'package:form_field_validator/form_field_validator.dart';
+import 'package:local_auth/local_auth.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -18,12 +24,20 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
 
+
   GlobalKey<FormState> formkey = GlobalKey<FormState>();
+  LatLng cord;
+
+
+
 
   void validate(){
+   // double lat = cord.latitude;
+   // double long = cord.longitude;
     if(formkey.currentState.validate()){
-      print("Valido");
+
       signIn(emailController.text, passwordController.text);
+      print("Valido");
     }else{
       print("No valido");
     }
@@ -43,16 +57,57 @@ class _LoginPageState extends State<LoginPage> {
 
   bool _isLoading = false;
 
+  bool userHasTouchId = false;
+  bool _useTouchId = false;
+
+  final LocalAuthentication auth = LocalAuthentication();
+  final FlutterSecureStorage storage = FlutterSecureStorage();
+
   final TextEditingController emailController = new TextEditingController();
   final TextEditingController passwordController = new TextEditingController();
   bool passwordVisible = true;
 
   @override
+  void initState() {
+
+    getSecureStorage();
+   //delete();
+
+
+    super.initState();
+  }
+
+  void getSecureStorage() async {
+    final isUsingBio = await storage.read(key: 'usingBiometric');
+    setState(() {
+      userHasTouchId = isUsingBio == 'true';
+    });
+  }
+
+  void delete() async{
+
+    final isUsingBio = await storage.read(key: 'usingBiometric');
+    setState(() {
+      userHasTouchId = isUsingBio == 'false';
+    });
+
+
+  }
+
+
+
+  @override
   Widget build(BuildContext context) {
+
+ /*   final geO_state = Provider.of<geo_state>(context);
+
+  geO_state.getUserLocation();
+  cord= geO_state.lastPosition;
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light.copyWith(
-        statusBarColor: Colors.transparent));
+        statusBarColor: Colors.transparent));*/
 
     return Scaffold(
+
       body: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
@@ -82,14 +137,16 @@ class _LoginPageState extends State<LoginPage> {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     Map data = {
       'email': email,
-      'password': pass
+      'password': pass,
+     // 'lat': lat as String,
+      //'lng': lng as String,
     };
     var jsonResponse = null;
-    var response = await http.post(
-        //"https://sade-app.herokuapp.com/sigin_api", body: data)
-        "http://10.0.0.7:4000/sigin_api", body: data)
+    String url1 = "https://sade-app.herokuapp.com/sigin_api";
+    String url2= "http://10.128.128.35:4000/sigin_api";
+    var response = await http.post(url2, body: data);
 
-    ;
+
     jsonResponse = json.decode(response.body);
     if (response.statusCode == 200) {
       jsonResponse = json.decode(response.body);
@@ -100,13 +157,15 @@ class _LoginPageState extends State<LoginPage> {
         });
         sharedPreferences.setString("token", jsonResponse['token']);
         Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (BuildContext context) => MainPage()), (
+            MaterialPageRoute(builder: (BuildContext context) => MainPage(
+              email: data['email'],
+              wantsTouchId: _useTouchId,
+              password: data['password'],
+            )), (
             Route<dynamic> route) => false);
         Fluttertoast.showToast(msg: "Se conectó correctamente");
       }
-    }
-
-    if (response.statusCode == 201){
+    } else if (response.statusCode == 201){
 
       jsonResponse = json.decode(response.body);
 
@@ -116,15 +175,18 @@ class _LoginPageState extends State<LoginPage> {
         });
         sharedPreferences.setString("token", jsonResponse['token']);
         Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (BuildContext context) => pedidos()), (
+            MaterialPageRoute(builder: (BuildContext context) => pedidos(
+              email: data['email'],
+              wantsTouchId: _useTouchId,
+              password: data['password'],
+
+            )), (
             Route<dynamic> route) => false);
         Fluttertoast.showToast(msg: "Se conectó correctamente el mensajero");
       }
 
 
-    }
-
-    else {
+    } else {
 
       setState(() {
         _isLoading = false;
@@ -136,6 +198,12 @@ class _LoginPageState extends State<LoginPage> {
       print(response.body);
 
     }
+
+  }
+
+  userLocationUpdate(String email){
+
+
 
   }
 
@@ -158,7 +226,7 @@ class _LoginPageState extends State<LoginPage> {
         ,
         elevation: 0.0,
         color: Colors.purple,
-        child: Text("SignIn",style: TextStyle(color: Colors.white70)),
+        child: Text("Iniciar Sesión",style: TextStyle(color: Colors.white70)),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5.0)),
       ),
     );
@@ -221,6 +289,48 @@ class _LoginPageState extends State<LoginPage> {
 
             ),
             SizedBox(height: 30.0,),
+            userHasTouchId
+                ? InkWell(
+              onTap: () => authenticate(),
+              child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.transparent,
+                    border: Border.all(
+                      color: Colors.purple,
+                      width: 2.0,
+                    ),
+                    borderRadius: BorderRadius.circular(30.0),
+                  ),
+                  padding: EdgeInsets.all(10.0),
+                  child: Icon(
+                    FontAwesomeIcons.fingerprint,
+                    size: 30,
+                  )),
+            )
+                : Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Checkbox(
+                  activeColor: Colors.orange,
+                  value: _useTouchId,
+                  onChanged: (newValue) {
+                    setState(() {
+                      _useTouchId = newValue;
+                    });
+                  },
+                ),
+                SizedBox(
+                  height: 20.0,
+                ),
+                Text(
+                  'Usar Lector de Huella',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16.0,
+                  ),
+                )
+              ],
+            )
           ],
         ),
       ),
@@ -256,5 +366,34 @@ class _LoginPageState extends State<LoginPage> {
 
     );
 
+  }
+
+  void authenticate() async {
+    final canCheck = await auth.canCheckBiometrics;
+
+    if (canCheck) {
+      List<BiometricType> availableBiometrics =
+      await auth.getAvailableBiometrics();
+
+
+        if (availableBiometrics.contains(BiometricType.fingerprint)) {
+          // Face ID.
+          final authenticated = await auth.authenticateWithBiometrics(
+              localizedReason: 'Por favor colocar su huella en el lector de huellas');
+          if (authenticated) {
+            final userStoredEmail = await storage.read(key: 'email');
+            final userStoredPassword = await storage.read(key: 'password');
+
+            signIn(userStoredEmail,  userStoredPassword);
+          }
+        }
+
+       /* else if (availableBiometrics.contains(BiometricType.face)) {
+          // Touch ID.
+        }*/
+
+    } else {
+      print('cant check');
+    }
   }
 }

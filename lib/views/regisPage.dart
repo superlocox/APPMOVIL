@@ -250,8 +250,11 @@ class _SignUpState extends State<SignUp> {
       'password': pass
     };
     var jsonResponse = null;
-    var response = await http.post(
-        "https://sade-app.herokuapp.com/singup_api", body: data);
+
+    String url1 = "https://sade-app.herokuapp.com/singup_api";
+    String url2= "http://10.128.128.35:4000/singup_api";
+
+    var response = await http.post(url2, body: data);
     jsonResponse = json.decode(response.body);
     if (response.statusCode == 200) {
       jsonResponse = json.decode(response.body);
